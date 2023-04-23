@@ -35,4 +35,7 @@ func (s *Step) Printf(format string, args ...interface{}) {
 	s.n++
 	format = strconv.Itoa(s.n) + ". " + format
 	klog.InfoDepth(2, fmt.Sprintf(format, args...))
+	var temp string
+	fmt.Print("是否继续下一步？")
+	fmt.Scanln(&temp)
 }
