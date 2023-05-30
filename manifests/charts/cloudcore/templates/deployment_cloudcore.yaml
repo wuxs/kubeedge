@@ -61,7 +61,7 @@ spec:
         volumeMounts:
         - name: conf
           mountPath: /etc/kubeedge/config
-        {{ if .Values.cloudCore.modules.cloudHub.enableCertGeneration }}
+        {{- if or .Values.cloudCore.modules.cloudHub.enableCertGeneration .Values.cloudCore.modules.cloudHub.customCert }}
         - name: cloudhub
           mountPath: /etc/kubeedge/hub
         {{ end }}
@@ -100,7 +100,7 @@ spec:
           path: /etc/localtime
           type: ""
         name: host-time
-      {{ if .Values.cloudCore.modules.cloudHub.enableCertGeneration }}
+      {{- if or .Values.cloudCore.modules.cloudHub.enableCertGeneration .Values.cloudCore.modules.cloudHub.customCert }}
       - name: cloudhub
         secret:
           secretName: cloudhub

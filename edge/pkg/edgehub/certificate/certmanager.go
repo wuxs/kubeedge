@@ -139,7 +139,7 @@ func (cm *CertManager) applyCerts() error {
 	// save the ca.crt to file
 	ca, err := x509.ParseCertificate(cacert)
 	if err != nil {
-		return fmt.Errorf("failed to parse the CA certificate, error: %v", err)
+		return fmt.Errorf("failed to parse the CA certificate, error: %v, size: %d, %v", err, len(cacert), cacert)
 	}
 
 	if err = certutil.WriteCert(cm.caFile, ca); err != nil {
@@ -270,11 +270,11 @@ func GetCACert(url string, token, nodename string) ([]byte, error) {
 
 // GetEdgeCert applies for the certificate from cloudcore
 func (cm *CertManager) GetEdgeCert(url string, capem []byte, cert tls.Certificate, token string) (crypto.Signer, []byte, error) {
-	ca, err := x509.ParseCertificate(capem)
+	sa, err := GetSignatureAlgorithm(capem)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse the CA certificate, error: %v", err)
+		return nil, nil, fmt.Errorf("failed to get ca SignatureAlgorithm: %v", err)
 	}
-	pk, csr, err := cm.getCSR(ca.SignatureAlgorithm)
+	pk, csr, err := cm.getCSR(sa)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CSR: %v", err)
 	}
@@ -342,4 +342,16 @@ func ValidateCACerts(cacerts []byte, hash string) (bool, string, string) {
 func hashCA(cacerts []byte) string {
 	digest := sha256.Sum256(cacerts)
 	return hex.EncodeToString(digest[:])
+}
+
+func GetSignatureAlgorithm(caPem []byte) (x509.SignatureAlgorithm, error) {
+	block, _ := pem.Decode(caPem)
+	if block == nil {
+		return x509.UnknownSignatureAlgorithm, fmt.Errorf("invalid ca pem")
+	}
+	crt, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return x509.UnknownSignatureAlgorithm, err
+	}
+	return crt.SignatureAlgorithm, nil
 }
