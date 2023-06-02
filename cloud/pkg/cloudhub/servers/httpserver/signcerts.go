@@ -77,8 +77,7 @@ func GenerateToken() error {
 	token.Claims = jwt.StandardClaims{
 		ExpiresAt: expiresAt,
 	}
-	clusterName := os.Getenv("EDGE_CLUSTER_NAME")
-	token.Header[ClusterName] = clusterName
+	token.Header[ClusterName] = os.Getenv("EDGE_CLUSTER_NAME")
 	token.Header[ClusterType] = "EdgeCluster"
 	keyPEM := getCaKey()
 	tokenString, err := token.SignedString(keyPEM)
